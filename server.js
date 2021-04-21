@@ -15,12 +15,17 @@ function Forecast(day) {
   this.date = day.valid_date;
 }
 
-app.get('/weather', (request, response) => {
-  const weather = weatherObject.data.map(day => new Forecast(day));
-  response.send(weather);
+app.get('/', (request, response) => {
+  response.send('Root');
 });
 
+app.get('/weather', (request, response) => {
+  try {
+    const weather = weatherObject.data.map((day) => new Forecast(day));
+    response.status(200).send(weather);
+  } catch (error) {
+    response.status(error.message).send(error.message);
+  }
+});
 
 app.listen(PORT, () => console.log('server is live!'));
-
-
