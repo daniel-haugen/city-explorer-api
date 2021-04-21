@@ -10,9 +10,11 @@ app.use(cors());
 
 const PORT = process.env.PORT;
 
-function Forecast(day) {
-  this.description = day.weather.description;
-  this.date = day.valid_date;
+class Forecast {
+  constructor(day) {
+    this.description = day.weather.description;
+    this.date = day.valid_date;
+  }
 }
 
 app.get('/', (request, response) => {
