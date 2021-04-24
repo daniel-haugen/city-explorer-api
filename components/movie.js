@@ -1,29 +1,49 @@
-'use strict';
+"use strict";
 
-const superagent = require('superagent');
+const { response } = require("express");
+const superagent = require("superagent");
+const cache = require("./cache");
 
 //move into movies.js
 class Movies {
   constructor(movie) {
-    this.name = movie.title
+    this.name = movie.title;
   }
 }
 
-  //move into movies.js
-  async function movieHandler(req, res) {
-    try {
+//move into movies.js
+async function movieHandler(req, res) {
+  try {
     const cityName = req.query.cityName;
-    const key = process.env.MOVIE_API_KEY;
-    const url = `https://api.themoviedb.org/3/search/movie?api_key=${key}&query=${cityName}`
+    const dataAlreadyFetched = cache[cityName] !== undefined;
 
-    const movieResponse = await superagent.get(url);
-    const movieObject = JSON.parse(movieResponse.text);
+    if (dataAlreadyFetched && (Date.now() - cache[cityName].timestamp < 10000)) {
+      const red = cache[cityName];
+      console.log('from memory', cache);
+      res.status(200).send(red);
+      
+    } else {
+      const baseURL = "https://api.themoviedb.org/3/search/movie";
+      const query = {
+        api_key: process.env.MOVIE_API_KEY,
+        query: cityName,
+      };
 
-    const movies = movieObject.results.map(movie => new Movies(movie));
+      const movieResponse = await superagent
+        .get(baseURL)
+        .query(query)
+        .catch((e) => console.e);
 
-    res.send(movies);
+      const movieObject = JSON.parse(movieResponse.text);
 
-    } catch(error){}
+      const movies = movieObject.results.map((movie) => new Movies(movie));
+      cache[cityName] = movies;
+      cache[cityName].timestamp = Date.now();
+      res.status(200).send(movies);
+    }
+  } catch (err) {
+    res.status(err.message).send(err.message);
   }
+}
 
-  module.exports = movieHandler;
+module.exports = movieHandler;

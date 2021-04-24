@@ -4,14 +4,15 @@ const express = require('express');
 require('dotenv').config();
 const cors = require('cors');
 const app = express();
-const superagent = require('superagent');
+app.use(cors());
 const movieHandler = require('./components/movie');
 const weatherHandler = require('./components/weather');
 const errorHandler = require('./components/error');
 
-app.use(cors());
 
-const PORT = process.env.PORT;
+
+
+const PORT = process.env.PORT || 3002;
 
 
 app.get('/', (request, response) => {
